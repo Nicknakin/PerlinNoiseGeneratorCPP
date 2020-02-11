@@ -1,11 +1,11 @@
 CXX = g++
 #oglflags = -lsfml-graphics -lsfml-window -lsfml-system -lpthread
 
-default: main.o 
-	$(CXX) -o defaultOut main.cpp 
+default: perlin.o main.o 
+	$(CXX) -o defaultOut main.o perlin.o 
 
 debug: 
-	$(CXX) -g -Wall -o debugOut main.cpp 
+	$(CXX) -g -Wall -o debugOut main.cpp perlin.cpp 
 
 %.o: %.cpp %.h
 	$(CXX) -c $< $(oglflags)
