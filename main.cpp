@@ -39,9 +39,18 @@ std::ostream& operator<<(std::ostream& os, const std::vector<std::vector<int>> &
 }
 
 int main(int argc, char** args){
-    Perlin ng{std::vector<int>{10,10,10}};
+    Perlin ng{std::vector<int>{10}};
     auto pos = std::vector<float>{0.12f, 0.13f, 2.3f};
-    ng(pos);
+    for(float i =0; i < 3.0f; i+=0.01f){
+        std::cout << i << " :";
+        pos.resize(0);
+        pos.push_back(i);
+        int temp = ng(pos)*20;
+        for(int k = 0; k<temp; k++)
+            std::cout << "#";
+        std::cout << std::endl;
+    }
+
     return 0;
 }
 
