@@ -104,7 +104,7 @@ float Perlin::operator()(std::vector<float> pos){
         dotProds = tempInterps;
     }
     //return
-    return dotProds[0];
+    return std::max(0.0, std::min((dotProds[0]+2.4)/4.8, 1.0));
 }
 
 std::vector<std::vector<int>> Perlin::combineArrays(std::vector<int> vec1, std::vector<int> vec2){
