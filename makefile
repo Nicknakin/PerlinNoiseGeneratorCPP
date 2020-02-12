@@ -1,4 +1,4 @@
-CXX = g++
+CXX = g++ -O3
 #oglflags = -lsfml-graphics -lsfml-window -lsfml-system -lpthread
 
 default: perlin.o main.o 
