@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <iomanip>
+#include <math.h>
 
 #include "perlin.h"
 
@@ -40,17 +41,15 @@ std::ostream& operator<<(std::ostream& os, const std::vector<std::vector<int>> &
 }
 
 int main(int argc, char** args){
-    Perlin ng{std::vector<int>{10}};
-    auto pos = std::vector<float>{0.12f, 0.13f, 2.3f};
-    for(float i =0; i < 3.0f; i+=0.001f){
-        std::cout << std::fixed << std::setw(3) << std::setprecision(2) << std::setfill('0') <<  i << ":\t";
-        pos.resize(0);
-        pos.push_back(i);
-        int temp = ng(pos)*20;
-        for(int k = 0; k<temp; k++)
-            std::cout << "#";
-        std::cout << std::endl;
-    }
+    Perlin ng{std::vector<int>{255, 255, 10}};
+    std::vector<int> outs{};
+    const int boxSize = 1;
+    outs.resize(800*800/boxSize/boxSize);
+    for(int i = 0; i < 800*800/boxSize/boxSize; i++){
+        auto pos = std::vector<float>{(float) (i%(800/boxSize))/(float) 800/boxSize * (float) 50, (float) std::floor(i/(800/boxSize))/(float) 800/boxSize * (float) 50, 0.f};
+        outs[i] = ng(pos)*255;
+    } 
+    std::cout << outs << std::endl;
 
     return 0;
 }

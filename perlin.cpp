@@ -96,13 +96,16 @@ float Perlin::operator()(std::vector<float> pos){
         dotProds[i] = dot(distFromCorner[i], cornerVectors[i]);
     }
     //Interpolations
-    for(int dim = 0; dim < dimensions.size(); dim--){
-        std::vector<float> tempInterps{};
-        for(int i = 0; i < dotProds.size(); i+=2){
-            tempInterps.push_back(smoothstepinterp(dotProds[i], dotProds[i+1], distFromCorner[0][i*pow(2, dim)]));
+    int iter = shortenedPos.size()-1;
+    while(dotProds.size() > 1){
+        std::vector<float> interpExpand{};
+        for(int pairIndex = 0; pairIndex < dotProds.size(); pairIndex += 2){
+            interpExpand.push_back(smoothstepinterp(dotProds[pairIndex], dotProds[pairIndex+1], shortenedPos[iter]));
         }
-        dotProds = tempInterps;
-    }
+        iter--;
+        dotProds = interpExpand;
+    } 
+
     //return
     return std::max(0.0, std::min((dotProds[0]+2.4)/4.8, 1.0));
 }
