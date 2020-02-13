@@ -5,7 +5,9 @@
 
 class Perlin{
     public:
+        Perlin();
         Perlin(std::vector<int> dimensions);
+        Perlin(std::vector<int> dimensions, int seed);
         float operator()(std::vector<float> pos);
 
         std::vector<std::vector<int>> combineArrays(std::vector<int> vec1, std::vector<int> vec2); 

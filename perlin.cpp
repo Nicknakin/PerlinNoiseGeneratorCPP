@@ -6,7 +6,9 @@
 #include <iostream>
 #include <cmath>
 
-Perlin::Perlin(std::vector<int> dimensions) : dimensions{dimensions} {
+Perlin::Perlin():Perlin{std::vector<int>{255,255}, 142857} {}
+Perlin::Perlin(std::vector<int> dimensions):Perlin{dimensions, 142857}{}
+Perlin::Perlin(std::vector<int> dimensions, int seed) : dimensions{dimensions} {
     //Initialize an empty vector of length dimensions.size()
     dimensionLengths = std::vector<int>{};
     dimensionLengths.resize(dimensions.size());
@@ -46,15 +48,19 @@ Perlin::Perlin(std::vector<int> dimensions) : dimensions{dimensions} {
     spacedVectors.erase(spacedVectors.begin()); 
 
     //Populate nodes
-    std::srand(142857);
+    std::srand(seed);
     int numNodes = 1;
     for(auto const &val : dimensions)
         numNodes *= val;
     nodes = std::vector<int>{};
     nodes.resize(numNodes);
     std::transform(nodes.begin(), nodes.end(), nodes.begin(), [&](auto _) -> int { return std::rand()%spacedVectors.size();});
-
-    subVector = combineArrays(std::vector<int>{0,0,0}, std::vector<int>{1,1,1});
+    
+    //Calculate relative positions of corners around a unit "cube" from a point
+    auto sub1 = std::vector<int>{}, sub2 = std::vector<int>{};
+    sub1.resize(dimensions.size(), 0);
+    sub2.resize(dimensions.size(), 1);
+    subVector = combineArrays(sub1, sub2);
 }
 
 float Perlin::operator()(std::vector<float> pos){
@@ -104,12 +110,13 @@ float Perlin::operator()(std::vector<float> pos){
         }
         iter--;
         dotProds = interpExpand;
-    } 
+    }
 
     //return
     return std::max(0.0, std::min((dotProds[0]+2.4)/4.8, 1.0));
 }
 
+//Return a combination of the two arrays which grow exponentially
 std::vector<std::vector<int>> Perlin::combineArrays(std::vector<int> vec1, std::vector<int> vec2){
     //Prepare a vector of length 1 to exponentially grow
     std::vector<std::vector<int>> corners{};
@@ -138,11 +145,13 @@ float Perlin::smoothstep(float start, float end, float val){
     return (val < start)? start : (val > end)? end: val*val*val*(10+val*(-15+val*6));
 }
 
+//Do a bi-interp from start to end at val% between the two
 float Perlin::smoothstepinterp(float start, float end, float val){
     float perc = smoothstep(0, 1, val);
     return start*(1-perc)+end*(perc);
 }
 
+//Simple dot product between floats and ints
 float Perlin::dot(std::vector<float> pos, std::vector<int> direction){
     float sum = 0;
     for(int i = 0; i < pos.size(); i++){
