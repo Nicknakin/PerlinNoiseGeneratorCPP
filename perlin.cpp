@@ -1,14 +1,16 @@
 #include "perlin.h"
 
 #include <vector>
+#include <time.h>
+#include <functional>
 #include <algorithm>
 #include <numeric>
 #include <cmath>
 
 Perlin::Perlin():Perlin{std::vector<int>{255,255}, 142857} {}
 Perlin::Perlin(std::initializer_list<int> dims):Perlin{std::vector<int>{dims}} {}
-Perlin::Perlin(std::vector<int> dimensions):Perlin{dimensions, 142857} {}
-Perlin::Perlin(std::vector<int> dimensions, int seed) : dimensions{dimensions}, range{std::sqrt(dimensions.size())/2} {
+Perlin::Perlin(std::vector<int> dimensions):Perlin{dimensions, (int) time(NULL)} {}
+Perlin::Perlin(std::vector<int> dimensions, int seed) : dimensions{dimensions}, range{std::sqrt(dimensions.size())/2}, octaves{4} {
     //Initialize an empty vector of length dimensions.size()
     dimensionLengths = std::vector<int> {};
     dimensionLengths.resize(dimensions.size());
@@ -55,9 +57,41 @@ Perlin::Perlin(std::vector<int> dimensions, int seed) : dimensions{dimensions}, 
     sub1.resize(dimensions.size(), 0);
     sub2.resize(dimensions.size(), 1);
     subVector = combineArrays(sub1, sub2);
+
+    octAdjust = 0;
+    reductionBase = 20;
+    for(float i = 0; i < octaves; i++){
+        octAdjust += std::pow(reductionBase, -i);
+    }
 }
 
 float Perlin::operator()(std::vector<float> pos) {
+    std::vector<std::vector<float>> octs;
+    octs.resize(octaves);
+    for(auto &val : octs)
+        val = pos;
+    int cnt = 1;
+    std::transform(octs.begin(), octs.end(), octs.begin(), [&](auto pos) {
+        std::transform(pos.begin(), pos.end(), pos.begin(), [&](auto num) {
+            return num/cnt;
+        });
+        cnt++;
+        return pos;
+    });
+    std::vector<float> octVals;
+    octVals.resize(octs.size());
+    cnt = 0;
+    std::transform(octs.begin(), octs.end(), octVals.begin(), [&] (auto a) {
+        return noise(a)/(std::pow(reductionBase, cnt++));
+    });
+    float val = 0;
+    for(auto &num : octVals)
+	    val += num;
+    return val;
+}
+
+float Perlin::noise(std::vector<float> pos) {
+    //std::transform(pos.begin(), pos.end(), dimensionLengths.begin(), pos.begin(), [] (auto a, auto b) { return fmod(a, b);});
     //Get 0-1 version of position with whole number cut off
     std::vector<float> shortenedPos;
     shortenedPos.resize(pos.size());
@@ -71,24 +105,24 @@ float Perlin::operator()(std::vector<float> pos) {
     std::vector<std::vector<int>> cornerVectors{};
     cornerVectors.resize(subVector.size());
     std::transform(subVector.begin(), subVector.end(), cornerVectors.begin(), 
-        [&](std::vector<int> corner) -> std::vector<int> {
+            [&](std::vector<int> corner) -> std::vector<int> {
             int cnt = 0;
             std::transform(corner.begin(), corner.end(), corner.begin(), 
                     [&] (int num) -> int {
-                        int temp = (num + topleft[cnt])*dimensionLengths[cnt];
-                        cnt++;
-                        return temp;
+                    int temp = (num + topleft[cnt])*dimensionLengths[cnt];
+                    cnt++;
+                    return temp;
                     });
             return baseVectors[nodes[std::accumulate(corner.begin(), corner.end(), 0)]];
-        });
-        
+            });
+
 
     //Dot Products
     std::vector<std::vector<float>> distFromCorner{};
     distFromCorner.resize(subVector.size(), shortenedPos);
     std::transform(distFromCorner.begin(), distFromCorner.end(), subVector.begin(), distFromCorner.begin(), [] (auto dist, auto sub) -> std::vector<float> {
-                std::transform(dist.begin(), dist.end(), sub.begin(), dist.begin(), std::minus<float>()); 
-                return dist;
+            std::transform(dist.begin(), dist.end(), sub.begin(), dist.begin(), std::minus<float>()); 
+            return dist;
             });
 
     std::vector<float> dotProds{};

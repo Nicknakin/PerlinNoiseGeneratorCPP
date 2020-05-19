@@ -1,6 +1,5 @@
-#ifndef perlin_def
-#define perlin_def
-
+#ifndef __perlin_inc__
+#define __perlin_inc__
 #include <vector>
 
 class Perlin {
@@ -10,6 +9,7 @@ public:
     Perlin(std::vector<int> dimensions);
     Perlin(std::vector<int> dimensions, int seed);
     float operator()(std::vector<float> pos);
+    float noise(std::vector<float> pos);
 
     std::vector<std::vector<int>> combineArrays(std::vector<int> vec1, std::vector<int> vec2);
     float interp(float start, float end, float val);
@@ -22,7 +22,11 @@ public:
     std::vector<int> dimensionLengths;
     std::vector<std::vector<int>> subVector;
     std::vector<std::vector<int>> baseVectors;
-    const double range;
+    const float range;
+    
+    int octaves;
+    float octAdjust;
+    float reductionBase;
 };
-
 #endif
+
